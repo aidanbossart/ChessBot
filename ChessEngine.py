@@ -1,6 +1,8 @@
+import chess
+
 class GameState():
     def __init__(self):
-        self.board = [
+        """self.board = [
             ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
             ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
             ["--", "--", "--", "--", "--", "--", "--", "--"],
@@ -9,16 +11,22 @@ class GameState():
             ["--", "--", "--", "--", "--", "--", "--", "--"],
             ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
             ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
-        ]
+        ]"""
+
+        self.board = chess.Board()
 
         self.whiteToMove = True
         self.moveLog = []
+        print(self.board)
     
-    def makeMove(self, move):
+    def makeMove(self, code):
+        self.board.push(code)
+
+    '''def makeMove(self, move):
         self.board[move.startRow][move.startCol] = "--"
         self.board[move.endRow][move.endCol] = move.pieceMoved
         self.moveLog.append(move)
-        self.whiteToMove = not self.whiteToMove
+        self.whiteToMove = not self.whiteToMove'''
     
     def undoMove(self):
         if(len(self.moveLog) != 0):
@@ -64,8 +72,8 @@ class Move():
         self.startCol = startSq[1]
         self.endRow = endSq[0]
         self.endCol = endSq[1]
-        self.pieceMoved = board[self.startRow][self.startCol]
-        self.pieceCaptured = board[self.endRow][self.endCol]
+        self.pieceMoved = board.piece_map().get(self.startRow*8 + self.startCol)
+        self.pieceCaptured = board.piece_map().get(self.endRow*8 + self.endCol)
 
     def getChessNotation(self):
         return self.getRankFule(self.startRow, self.startCol) + self.getRankFile(self.endRow, self.endCol)
