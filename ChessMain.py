@@ -1,11 +1,9 @@
 import pygame
 import chess
 import chess.svg
-import ChessEngine
 import ChessAI
 import io
 import math
-#from svglib.svglib import svg2rlg
 
 WIDTH = HEIGHT = 512
 DIMENSION = 8
@@ -47,7 +45,10 @@ def drawPieces(screen, board):
                 screen.blit(IMAGES[str("w" + symbol)], pygame.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
 def drawDrag(screen, board, square):
-    symbol = board.piece_at(square).symbol()
+    symbol = board.piece_at(square)
+    if(symbol == None):
+        return
+    symbol = symbol.symbol()
 
     if(symbol.islower()):
         symbol = symbol.upper()
@@ -60,17 +61,17 @@ def drawDrag(screen, board, square):
             symbol = 'p'
         screen.blit(IMAGES[str("w" + symbol)], pygame.Rect(pygame.mouse.get_pos()[0]-SQ_SIZE/2, pygame.mouse.get_pos()[1]-SQ_SIZE/2, SQ_SIZE, SQ_SIZE))
 
-def drawGameState(screen, gs):
+def drawGameState(screen, board):
     drawBoard(screen)
-    drawPieces(screen, gs.board)
+    drawPieces(screen, board)
 
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
-    gs = ChessEngine.GameState()
+    board = chess.Board()
 
-    ai = ChessAI.ChessAI(gs.board)
+    ai = ChessAI.ChessAI(board)
 
     drag = False
 
@@ -83,8 +84,15 @@ def main():
     playerClicks = []
 
     while running:
-        if(gs.board.turn == chess.BLACK):
-                        gs.makeMove(ai.randomMove())
+        if(board.is_checkmate() == True):
+            print("CHECKMATE")
+            exit()
+        if(board.is_stalemate() == True):
+            print("STALEMATE")
+            exit()
+
+        if(board.turn == chess.BLACK):
+            board.push(ai.getBestMove())
 
         for ev in pygame.event.get():
             if(ev.type == pygame.QUIT):
@@ -95,28 +103,8 @@ def main():
                 col = loc[0]//SQ_SIZE
                 row = loc[1]//SQ_SIZE
 
-                #sqSelected = (row, col)
                 sqSelected = chess.square(col, 7-row)
-                '''
-                
-                
-                if sqSelected == (row, col):
-                    sqSelected = ()
-                    playerClicks = []
-                else:
-                    
-                    sqSelected = (row, col)
-                    playerClicks.append(sqSelected)
-                    if(len(playerClicks) == 2 and gs.board.turn == chess.WHITE):
 
-                        move = chess.Move(chess.square(file_index=playerClicks[0][1], rank_index=7-playerClicks[0][0]), chess.square(file_index=playerClicks[1][1], rank_index=7-playerClicks[1][0]))
-                        if(move in gs.board.legal_moves):
-                            gs.makeMove(move)
-
-                        
-                        sqSelected = ()
-                        playerClicks = []
-                '''
             elif(ev.type == pygame.MOUSEMOTION):
                 if(drag == True):
                     mouse_pos = pygame.mouse.get_pos()
@@ -128,13 +116,10 @@ def main():
                 col = mouse_pos[0]//SQ_SIZE
                 row = mouse_pos[1]//SQ_SIZE
 
-                print(col)
-                print(row)
-
                 move = chess.Move(chess.square(file_index=chess.square_file(sqSelected), rank_index=chess.square_rank(sqSelected)), chess.square(file_index=col, rank_index=7-row))
-                print(move)
-                if(move in gs.board.legal_moves):
-                    gs.makeMove(move)
+
+                if(move in board.legal_moves):
+                    board.push(move)
 
                 sqSelected = ()
                 
@@ -144,9 +129,9 @@ def main():
         
         clock.tick(MAX_FPS)
 
-        drawGameState(screen, gs)
+        drawGameState(screen, board)
         if(drag == True):
-            drawDrag(screen, gs.board, sqSelected)
+            drawDrag(screen, board, sqSelected)
 
         pygame.display.flip()
 
