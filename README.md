@@ -1,1 +1,1 @@
-Chess AI constructed for a Artificial Intelligence class.
+Chess AI constructed for an Artificial Intelligence class.
